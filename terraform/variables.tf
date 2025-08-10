@@ -26,7 +26,7 @@ variable "environment" {
 variable "aws_region" {
   description = "AWS region for resource deployment"
   type        = string
-  default     = "us-west-2"
+  default     = "us-east-1"
 }
 
 variable "owner" {
@@ -41,28 +41,26 @@ variable "cost_center" {
   default     = "Technology"
 }
 
-# Project-Specific Variables
-variable "{{PRIMARY_SERVICE_VAR}}" {
-  description = "Configuration for Kinesis Analytics"
+# Feature toggles for optional services (kept off for cost unless explicitly enabled)
+variable "features" {
+  description = "Feature flags for optional components"
   type = object({
-    enabled        = bool
-    {{SERVICE_CONFIG_VARS}}
+    kinesis_stream          = bool
+    kinesis_analytics_sql   = bool
+    kinesis_analytics_flink = bool
+    ml_api_gateway          = bool
+    sagemaker_demo          = bool
+    bedrock_demo            = bool
+    amazon_q_demo           = bool
   })
   default = {
-    enabled        = true
-    {{SERVICE_CONFIG_DEFAULTS}}
-  }
-}
-
-variable "{{SECONDARY_SERVICE_VAR}}" {
-  description = "Configuration for Lambda"
-  type = object({
-    enabled        = bool
-    {{SERVICE_CONFIG_VARS_2}}
-  })
-  default = {
-    enabled        = true
-    {{SERVICE_CONFIG_DEFAULTS_2}}
+    kinesis_stream          = false
+    kinesis_analytics_sql   = false
+    kinesis_analytics_flink = false
+    ml_api_gateway          = false
+    sagemaker_demo          = false
+    bedrock_demo            = false
+    amazon_q_demo           = false
   }
 }
 
@@ -70,16 +68,16 @@ variable "{{SECONDARY_SERVICE_VAR}}" {
 variable "storage_config" {
   description = "Storage configuration settings"
   type = object({
-    bucket_prefix     = string
-    versioning       = bool
-    encryption       = bool
-    lifecycle_days   = number
+    bucket_prefix  = string
+    versioning     = bool
+    encryption     = bool
+    lifecycle_days = number
   })
   default = {
-    bucket_prefix    = "aws-ml-integration-demo"
-    versioning      = true
-    encryption      = true
-    lifecycle_days  = 30
+    bucket_prefix  = "aws-ml-integration-demo"
+    versioning     = true
+    encryption     = true
+    lifecycle_days = 30
   }
 }
 
@@ -87,16 +85,16 @@ variable "storage_config" {
 variable "monitoring_config" {
   description = "Monitoring and alerting configuration"
   type = object({
-    enable_dashboards     = bool
-    enable_alerts        = bool
-    log_retention_days   = number
-    metric_namespace     = string
+    enable_dashboards  = bool
+    enable_alerts      = bool
+    log_retention_days = number
+    metric_namespace   = string
   })
   default = {
-    enable_dashboards    = true
-    enable_alerts       = true
-    log_retention_days  = 7
-    metric_namespace    = "aws-ml-integration-demo/Kinesis Analytics"
+    enable_dashboards  = true
+    enable_alerts      = true
+    log_retention_days = 7
+    metric_namespace   = "aws-ml-integration-demo/Kinesis Analytics"
   }
 }
 
@@ -104,16 +102,16 @@ variable "monitoring_config" {
 variable "security_config" {
   description = "Security configuration settings"
   type = object({
-    enable_encryption    = bool
-    kms_key_rotation    = bool
-    vpc_enabled         = bool
-    public_access       = bool
+    enable_encryption = bool
+    kms_key_rotation  = bool
+    vpc_enabled       = bool
+    public_access     = bool
   })
   default = {
-    enable_encryption   = true
-    kms_key_rotation   = true
-    vpc_enabled        = false  # Set to true for enterprise deployment
-    public_access      = false
+    enable_encryption = true
+    kms_key_rotation  = true
+    vpc_enabled       = false # Set to true for enterprise deployment
+    public_access     = false
   }
 }
 
@@ -121,33 +119,33 @@ variable "security_config" {
 variable "cost_optimization" {
   description = "Cost optimization settings"
   type = object({
-    auto_scaling        = bool
-    spot_instances      = bool
-    reserved_capacity   = bool
-    budget_limit_usd    = number
+    auto_scaling      = bool
+    spot_instances    = bool
+    reserved_capacity = bool
+    budget_limit_usd  = number
   })
   default = {
-    auto_scaling       = true
-    spot_instances     = false  # Set to true for dev environments
-    reserved_capacity  = false  # Set to true for prod environments
-    budget_limit_usd   = {{BUDGET_LIMIT}}
+    auto_scaling      = true
+    spot_instances    = false # Set to true for dev environments
+    reserved_capacity = false # Set to true for prod environments
+    budget_limit_usd  = 25
   }
 }
 
 # Enterprise Features (disabled by default for cost optimization)
 variable "enterprise_features" {
-  description = "Enterprise features configuration"
+  description = "Enterprise features configuration (not used in MVP)"
   type = object({
-    {{ENTERPRISE_FEATURE_1}}        = bool
-    {{ENTERPRISE_FEATURE_2}}        = bool
-    {{ENTERPRISE_FEATURE_3}}        = bool
-    advanced_monitoring             = bool
+    private_link        = bool
+    cross_account       = bool
+    multi_region        = bool
+    advanced_monitoring = bool
   })
   default = {
-    {{ENTERPRISE_FEATURE_1}}        = false
-    {{ENTERPRISE_FEATURE_2}}        = false
-    {{ENTERPRISE_FEATURE_3}}        = false
-    advanced_monitoring             = false
+    private_link        = false
+    cross_account       = false
+    multi_region        = false
+    advanced_monitoring = false
   }
 }
 
@@ -155,16 +153,16 @@ variable "enterprise_features" {
 variable "resource_sizing" {
   description = "Resource sizing configuration for different environments"
   type = object({
-    {{PRIMARY_COMPUTE_SIZE}}    = string
-    {{SECONDARY_COMPUTE_SIZE}}  = string
-    storage_class              = string
-    backup_retention           = number
+    lambda_memory_mb       = number
+    lambda_timeout_seconds = number
+    storage_class          = string
+    backup_retention       = number
   })
   default = {
-    {{PRIMARY_COMPUTE_SIZE}}   = "{{DEFAULT_COMPUTE_SIZE}}"    # Cost-optimized default
-    {{SECONDARY_COMPUTE_SIZE}} = "{{DEFAULT_COMPUTE_SIZE_2}}"  # Cost-optimized default
-    storage_class             = "STANDARD_IA"                  # Cost-optimized storage
-    backup_retention          = 7                             # Days
+    lambda_memory_mb       = 256
+    lambda_timeout_seconds = 15
+    storage_class          = "STANDARD_IA"
+    backup_retention       = 7
   }
 }
 
@@ -172,7 +170,5 @@ variable "resource_sizing" {
 variable "additional_tags" {
   description = "Additional tags to apply to all resources"
   type        = map(string)
-  default     = {
-    {{DEFAULT_TAGS}}
-  }
+  default     = {}
 }
