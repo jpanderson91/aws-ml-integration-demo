@@ -372,3 +372,38 @@ resource "aws_lambda_permission" "bedrock_apigw_invoke" {
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_apigatewayv2_api.bedrock_api.execution_arn}/*/*"
 }
+
+############################
+# SageMaker Notebook (Demo)
+############################
+
+data "aws_iam_policy_document" "sagemaker_assume" {
+  statement {
+    actions = ["sts:AssumeRole"]
+    principals {
+      type        = "Service"
+      identifiers = ["sagemaker.amazonaws.com"]
+    }
+  }
+}
+
+resource "aws_iam_role" "sagemaker_notebook_role" {
+  name               = "${local.name_prefix}-sagemaker-notebook-role"
+  assume_role_policy = data.aws_iam_policy_document.sagemaker_assume.json
+  tags               = merge(local.common_tags, var.additional_tags)
+}
+
+resource "aws_iam_role_policy_attachment" "sagemaker_full_access" {
+  role       = aws_iam_role.sagemaker_notebook_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSageMakerFullAccess"
+}
+
+resource "aws_sagemaker_notebook_instance" "demo" {
+  name                   = "${local.name_prefix}-notebook"
+  role_arn               = aws_iam_role.sagemaker_notebook_role.arn
+  instance_type          = "ml.t3.medium"
+  volume_size            = 5
+  direct_internet_access = "Enabled"
+  lifecycle_config_name  = null
+  tags                   = merge(local.common_tags, var.additional_tags)
+}

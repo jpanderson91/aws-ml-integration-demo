@@ -87,6 +87,9 @@ dashboard_urls = {
 
 # View all resources
 terraform output
+
+# Open SageMaker Notebook instance (console link from output)
+terraform output -json sagemaker_notebook | jq -r .console_overview
 ```
 
 ---
@@ -121,6 +124,12 @@ terraform output dashboard_urls
 
 # Open dashboards in browser (copy URLs from output)
 ```
+
+### Verify SageMaker Notebook (optional but recommended)
+1. From the SageMaker console link in `terraform output sagemaker_notebook`, open the notebook instance and click "Open JupyterLab".
+2. Create a new Python 3 notebook and run a quick sanity cell:
+  - import boto3, os; print(boto3.Session().region_name); print([b['Name'] for b in boto3.client('s3').list_buckets()['Buckets'] if 'ml-integration-demo' in b['Name']])
+3. Take the screenshots listed in README under "SageMaker Notebook Demo".
 
 ---
 

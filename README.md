@@ -52,6 +52,19 @@ This repository showcases **senior-level AWS capabilities** through:
 | **DevOps Practices** | ✅ CI/CD Ready | ✅ Enterprise Automation |
 | **Security** | ✅ IAM + Encryption | ✅ VPC + Advanced Security |
 
+## 🧪 SageMaker Notebook Demo (included)
+
+- Deployed via Terraform as `aws-ml-integration-demo-dev-notebook`.
+- Open the instance from the SageMaker console (see Terraform output `sagemaker_notebook.console_overview`).
+- Launch JupyterLab and run a quick sanity cell to verify creds and access:
+    - import boto3; s3 = boto3.client('s3'); s3.list_buckets()
+- Screenshots (in `docs/screenshots/`):
+    - `sagemaker-notebook-instances-console-screenshot.png`
+    - `sagemaker-notebook-instance-overview-console-screenshot.png`
+    - `sagemaker-notebook-open-jupyter-console-screenshot.png`
+    - `python3-notebook-sanity-cell.png`
+    - `iam-role-sagemaker-notebook-console-screenshot.png`
+
 ## 📸 **Live Dashboard Screenshots**
 
 ![Main Dashboard](docs/screenshots/main-dashboard.png)
