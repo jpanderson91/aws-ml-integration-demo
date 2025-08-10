@@ -12,6 +12,10 @@ terraform {
       source  = "hashicorp/random"
       version = "~> 3.0"
     }
+    archive = {
+      source  = "hashicorp/archive"
+      version = "~> 2.0"
+    }
   }
 }
 
@@ -262,4 +266,144 @@ resource "aws_lambda_event_source_mapping" "kinesis" {
   function_name     = aws_lambda_function.kinesis_processor.arn
   starting_position = "LATEST"
   batch_size        = 100
+}
+
+############################
+# Bedrock Demo (Lambda + API)
+############################
+
+# IAM for Bedrock invoke Lambda
+data "aws_iam_policy_document" "bedrock_lambda_assume" {
+  statement {
+    actions = ["sts:AssumeRole"]
+    principals {
+      type        = "Service"
+      identifiers = ["lambda.amazonaws.com"]
+    }
+  }
+}
+
+resource "aws_iam_role" "bedrock_lambda_exec" {
+  name               = "${local.lambda_prefix}-bedrock-exec"
+  assume_role_policy = data.aws_iam_policy_document.bedrock_lambda_assume.json
+  tags               = merge(local.common_tags, var.additional_tags)
+}
+
+data "aws_iam_policy_document" "bedrock_invoke_policy" {
+  statement {
+    sid       = "BedrockInvoke"
+    effect    = "Allow"
+    actions   = ["bedrock:InvokeModel"]
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_policy" "bedrock_invoke" {
+  name   = "${local.lambda_prefix}-bedrock-invoke"
+  policy = data.aws_iam_policy_document.bedrock_invoke_policy.json
+}
+
+resource "aws_iam_role_policy_attachment" "bedrock_logs" {
+  role       = aws_iam_role.bedrock_lambda_exec.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+}
+
+resource "aws_iam_role_policy_attachment" "bedrock_invoke_attach" {
+  role       = aws_iam_role.bedrock_lambda_exec.name
+  policy_arn = aws_iam_policy.bedrock_invoke.arn
+}
+
+# Package Bedrock Lambda code
+data "archive_file" "bedrock_zip" {
+  type        = "zip"
+  source_dir  = "${path.root}/../src/lambda/bedrock_invoke"
+  output_path = "${path.module}/bedrock_invoke.zip"
+}
+
+resource "aws_lambda_function" "bedrock_invoke" {
+  function_name    = "${local.lambda_prefix}-bedrock-invoke"
+  role             = aws_iam_role.bedrock_lambda_exec.arn
+  handler          = "handler.handler"
+  runtime          = "python3.12"
+  filename         = data.archive_file.bedrock_zip.output_path
+  source_code_hash = data.archive_file.bedrock_zip.output_base64sha256
+  timeout          = 20
+  memory_size      = 256
+
+  environment {
+    variables = {
+      BEDROCK_MODEL_ID = coalesce(var.bedrock_model_id, "amazon.titan-text-lite-v1")
+    }
+  }
+
+  tags = merge(local.common_tags, var.additional_tags)
+}
+
+# HTTP API Gateway to invoke the Bedrock Lambda
+resource "aws_apigatewayv2_api" "bedrock_api" {
+  name          = "${local.name_prefix}-bedrock-api"
+  protocol_type = "HTTP"
+}
+
+resource "aws_apigatewayv2_integration" "bedrock_integration" {
+  api_id                 = aws_apigatewayv2_api.bedrock_api.id
+  integration_type       = "AWS_PROXY"
+  integration_uri        = aws_lambda_function.bedrock_invoke.invoke_arn
+  payload_format_version = "2.0"
+  integration_method     = "POST"
+}
+
+resource "aws_apigatewayv2_route" "bedrock_route" {
+  api_id    = aws_apigatewayv2_api.bedrock_api.id
+  route_key = "ANY /bedrock"
+  target    = "integrations/${aws_apigatewayv2_integration.bedrock_integration.id}"
+}
+
+resource "aws_apigatewayv2_stage" "bedrock_stage" {
+  api_id      = aws_apigatewayv2_api.bedrock_api.id
+  name        = "$default"
+  auto_deploy = true
+}
+
+resource "aws_lambda_permission" "bedrock_apigw_invoke" {
+  statement_id  = "AllowAPIGatewayInvoke"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.bedrock_invoke.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_apigatewayv2_api.bedrock_api.execution_arn}/*/*"
+}
+
+############################
+# SageMaker Notebook (Demo)
+############################
+
+data "aws_iam_policy_document" "sagemaker_assume" {
+  statement {
+    actions = ["sts:AssumeRole"]
+    principals {
+      type        = "Service"
+      identifiers = ["sagemaker.amazonaws.com"]
+    }
+  }
+}
+
+resource "aws_iam_role" "sagemaker_notebook_role" {
+  name               = "${local.name_prefix}-sagemaker-notebook-role"
+  assume_role_policy = data.aws_iam_policy_document.sagemaker_assume.json
+  tags               = merge(local.common_tags, var.additional_tags)
+}
+
+resource "aws_iam_role_policy_attachment" "sagemaker_full_access" {
+  role       = aws_iam_role.sagemaker_notebook_role.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSageMakerFullAccess"
+}
+
+resource "aws_sagemaker_notebook_instance" "demo" {
+  name                   = "${local.name_prefix}-notebook"
+  role_arn               = aws_iam_role.sagemaker_notebook_role.arn
+  instance_type          = "ml.t3.medium"
+  volume_size            = 5
+  direct_internet_access = "Enabled"
+  lifecycle_config_name  = null
+  tags                   = merge(local.common_tags, var.additional_tags)
 }

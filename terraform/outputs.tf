@@ -110,6 +110,30 @@ output "enterprise_features_status" {
   }
 }
 
+# SageMaker demo outputs
+output "sagemaker_notebook" {
+  description = "SageMaker notebook instance details"
+  value = {
+    name             = aws_sagemaker_notebook_instance.demo.name
+    arn              = aws_sagemaker_notebook_instance.demo.arn
+    instance_type    = aws_sagemaker_notebook_instance.demo.instance_type
+  url              = aws_sagemaker_notebook_instance.demo.url
+    console_overview = "https://${data.aws_region.current.name}.console.aws.amazon.com/sagemaker/home?region=${data.aws_region.current.name}#/notebook-instances/${aws_sagemaker_notebook_instance.demo.name}"
+  }
+}
+
+# Bedrock demo outputs
+output "bedrock_demo" {
+  description = "Bedrock Lambda and API details"
+  value = {
+    model_id       = coalesce(var.bedrock_model_id, "amazon.titan-text-lite-v1")
+    lambda_name    = aws_lambda_function.bedrock_invoke.function_name
+    lambda_arn     = aws_lambda_function.bedrock_invoke.arn
+    api_endpoint   = aws_apigatewayv2_api.bedrock_api.api_endpoint
+    invoke_example = "${aws_apigatewayv2_api.bedrock_api.api_endpoint}/bedrock?prompt=hello"
+  }
+}
+
 # Security Compliance Information
 output "security_compliance" {
   description = "Security and compliance status"
