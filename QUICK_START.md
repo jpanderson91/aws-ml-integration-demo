@@ -44,7 +44,7 @@ aws sts get-caller-identity --profile aws-ml-integration-demo
 ### Step 1: Clone and Setup
 ```powershell
 # Clone repository
-git clone {{REPO_URL}}
+git clone https://github.com/jpanderson91/aws-ml-integration-demo.git
 cd aws-ml-integration-demo
 
 # Set AWS profile for session
@@ -66,24 +66,26 @@ terraform plan
 terraform apply -auto-approve
 ```
 
-**Expected Output:**
+**Expected Output (example):**
 ```
-Apply complete! Resources: {{RESOURCE_COUNT}} added, 0 changed, 0 destroyed.
+Apply complete! Resources: 10+ added, 0 changed, 0 destroyed.
 
 Outputs:
 dashboard_urls = {
-  "{{DASHBOARD_1}}" = "https://{{REGION}}.console.aws.amazon.com/cloudwatch/home#dashboards:name={{DASHBOARD_NAME_1}}"
-  "{{DASHBOARD_2}}" = "https://{{REGION}}.console.aws.amazon.com/cloudwatch/home#dashboards:name={{DASHBOARD_NAME_2}}"
+  "cloudwatch_dashboard" = "https://us-east-1.console.aws.amazon.com/cloudwatch/home?region=us-east-1#dashboards:name=aws-ml-integration-demo-dev-overview"
+}
+sagemaker_notebook = {
+  name, arn, instance_type, url, console_overview
 }
 ```
 
 ### Step 3: Verify Deployment
 ```powershell
-# Check Kinesis Analytics status
-{{VERIFICATION_COMMAND_1}}
+# Check Kinesis & Lambda resources
+terraform output stream_and_lambda
 
-# Check Lambda status
-{{VERIFICATION_COMMAND_2}}
+# Check SageMaker notebook details
+terraform output sagemaker_notebook
 
 # View all resources
 terraform output
@@ -98,22 +100,18 @@ terraform output -json sagemaker_notebook | jq -r .console_overview
 
 ### Generate Test Data
 ```powershell
-# Navigate to testing directory
-cd ../testing
-
-# Install Python dependencies (if needed)
-pip install -r requirements.txt
-
-# Run end-to-end test
-python test_data-pipeline.py
+# Send test records to Kinesis
+cd ../testing/integration
+$stream = (cd ../../terraform; terraform output -raw stream_and_lambda | ConvertFrom-Json).stream_name
+./send_records.ps1 -StreamName $stream -Count 10
 ```
 
 **Expected Results:**
 ```
-✅ {{TEST_RESULT_1}}
-✅ {{TEST_RESULT_2}}
-✅ {{TEST_RESULT_3}}
-✅ All tests passed - System is working correctly!
+✅ Kinesis shows records and Lambda shows invocations in CloudWatch
+✅ S3 bucket receives processed objects
+✅ Bedrock API returns a JSON response with generated text
+✅ Notebook can import boto3 and list buckets
 ```
 
 ### View Live Dashboards
@@ -122,7 +120,10 @@ python test_data-pipeline.py
 cd ../terraform
 terraform output dashboard_urls
 
-# Open dashboards in browser (copy URLs from output)
+# Optional: curl Bedrock API example endpoint printed in outputs
+$bedrock = terraform output -json bedrock_demo | ConvertFrom-Json
+$url = "$($bedrock.api_endpoint)/bedrock?prompt=hello"
+Write-Host "Invoke: $url"  
 ```
 
 ### Verify SageMaker Notebook (optional but recommended)
@@ -136,15 +137,15 @@ terraform output dashboard_urls
 ## 📊 **Portfolio Demonstration**
 
 ### Screenshots for Portfolio
-1. **Main Dashboard**: Shows {{DASHBOARD_1_DESCRIPTION}}
-2. **Metrics Dashboard**: Shows {{DASHBOARD_2_DESCRIPTION}}
-3. **Cost Dashboard**: Shows resource costs and optimization
+1. Kinesis Stream Monitoring: IncomingRecords and IteratorAge
+2. Lambda Metrics: Invocations, Errors, Duration (p99)
+3. SageMaker Notebook: JupyterLab + sanity cell output
 
 ### Key Demonstration Points
 - **Working Infrastructure**: Live metrics with zero errors
 - **Cost Optimization**: $20/month operational cost
-- **Professional Architecture**: {{ARCHITECTURE_HIGHLIGHTS}}
-- **Security Best Practices**: {{SECURITY_HIGHLIGHTS}}
+- **Professional Architecture**: Event-driven pipeline, serverless components
+- **Security Best Practices**: S3 encryption, IAM least-privilege, logging
 
 ---
 
@@ -158,7 +159,7 @@ terraform output dashboard_urls
 aws sts get-caller-identity --profile aws-ml-integration-demo
 
 # Check required permissions
-{{PERMISSION_CHECK_COMMAND}}
+aws sts get-caller-identity --profile aws-ml-integration-demo
 ```
 
 **Issue**: No data appearing in dashboards
@@ -173,7 +174,7 @@ python test_data-pipeline.py
 **Issue**: High costs in AWS
 ```powershell
 # Solution: Check resource usage
-{{COST_CHECK_COMMAND}}
+aws ce get-cost-and-usage --time-period Start=2025-08-01,End=2025-08-31 --granularity DAILY --metrics UnblendedCost --profile aws-ml-integration-demo
 
 # Clean up if needed
 terraform destroy -auto-approve
@@ -197,12 +198,17 @@ cd terraform
 terraform destroy -auto-approve
 
 # Verify cleanup
-{{CLEANUP_VERIFICATION}}
+terraform state list
+
+# Optional: spot-check via AWS CLI (should not show demo resources)
+# aws kinesis list-streams --profile aws-ml-integration-demo
+# aws sagemaker list-notebook-instances --profile aws-ml-integration-demo
+# aws apigatewayv2 get-apis --profile aws-ml-integration-demo
 ```
 
 **Expected Output:**
 ```
-Destroy complete! Resources: {{RESOURCE_COUNT}} destroyed.
+Destroy complete! Resources: all Terraform-managed resources destroyed.
 ```
 
 ---
