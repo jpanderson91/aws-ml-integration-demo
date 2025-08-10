@@ -62,6 +62,17 @@ output "dashboard_urls" {
   }
 }
 
+# Stream and Lambda outputs for demo
+output "stream_and_lambda" {
+  description = "Kinesis stream and Lambda processor details"
+  value = {
+    stream_name = aws_kinesis_stream.input.name
+    stream_arn  = aws_kinesis_stream.input.arn
+    lambda_name = aws_lambda_function.kinesis_processor.function_name
+    lambda_arn  = aws_lambda_function.kinesis_processor.arn
+  }
+}
+
 # Cost and Resource Summary
 output "deployment_summary" {
   description = "Summary of deployed resources"
