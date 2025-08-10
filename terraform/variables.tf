@@ -166,6 +166,13 @@ variable "resource_sizing" {
   }
 }
 
+# Bedrock model selection
+variable "bedrock_model_id" {
+  description = "Bedrock model ID to invoke (e.g., amazon.titan-text-lite-v1 or anthropic.claude-3-haiku-20240307-v1:0)"
+  type        = string
+  default     = "amazon.titan-text-lite-v1"
+}
+
 # Tagging Configuration
 variable "additional_tags" {
   description = "Additional tags to apply to all resources"

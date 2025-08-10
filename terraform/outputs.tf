@@ -110,6 +110,18 @@ output "enterprise_features_status" {
   }
 }
 
+# Bedrock demo outputs
+output "bedrock_demo" {
+  description = "Bedrock Lambda and API details"
+  value = {
+    model_id       = coalesce(var.bedrock_model_id, "amazon.titan-text-lite-v1")
+    lambda_name    = aws_lambda_function.bedrock_invoke.function_name
+    lambda_arn     = aws_lambda_function.bedrock_invoke.arn
+    api_endpoint   = aws_apigatewayv2_api.bedrock_api.api_endpoint
+    invoke_example = "${aws_apigatewayv2_api.bedrock_api.api_endpoint}/bedrock?prompt=hello"
+  }
+}
+
 # Security Compliance Information
 output "security_compliance" {
   description = "Security and compliance status"
