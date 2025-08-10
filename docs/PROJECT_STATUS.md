@@ -6,26 +6,27 @@
 - **Owner**: Project Team
 - **Cost Center**: Technology
 
-## Status
-- [ ] Infrastructure deployed
-- [ ] Basic testing completed
-- [ ] Dashboards configured
-- [ ] Documentation complete
-- [ ] Portfolio screenshots taken
+## Status (Current)
+- [x] Infrastructure deployed (Kinesis, Lambda, S3, CloudWatch, API Gateway, SageMaker, Bedrock)
+- [x] Basic testing completed (Kinesis test records → S3, Bedrock API invoked)
+- [x] Dashboards configured (Lambda + Kinesis metrics)
+- [x] Portfolio screenshots taken (S3, CloudWatch, Lambda, Kinesis, Bedrock, SageMaker)
+- [ ] Final documentation polish (mermaid + cleanup complete in README/QUICK_START)
 
 ## Architecture
-- **Primary Service**: Kinesis Analytics
-- **Secondary Service**: Lambda
-- **Storage**: S3
-- **Monitoring**: CloudWatch
+- Ingestion: Kinesis Stream
+- Processing: Lambda (Kinesis consumer)
+- Storage: S3 (versioned, SSE-S3, lifecycle)
+- GenAI: API Gateway → Lambda → Bedrock
+- ML: SageMaker Notebook (JupyterLab)
+- Monitoring: CloudWatch (logs + dashboard)
 
 ## Cost Targets
-- **Basic Deployment**: 20/month
-- **Enterprise Deployment**: 150-300/month
+- Basic Demo: Low (destroy when done)
+- Enterprise add-ons: TBD per feature
 
-## Next Steps
-1. Review and customize Terraform configuration
-2. Deploy infrastructure using QUICK_START.md
-3. Run end-to-end tests
-4. Configure monitoring dashboards
-5. Take portfolio screenshots
+## Next Steps / Roadmap
+1. Docs polish PR: finalize README mermaid and remove residual placeholders
+2. Optional enterprise features: EMR/Redshift/DataSync modules behind flags
+3. Add simple Athena/Glue example for querying processed S3 data
+4. CI: Add lint/format checks for Terraform and Python

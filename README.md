@@ -7,27 +7,27 @@
 ## 💼 **AWS ProServe AI/ML Skills Demonstrated**
 
 This project directly addresses critical AWS Delivery Consultant requirements:
-- **✅ SageMaker Integration**: End-to-end ML pipeline with model training and deployment
-- **✅ Bedrock GenAI**: Document analysis and content generation capabilities  
-- **✅ Amazon Q Business**: Intelligent knowledge management and query processing
-- **✅ AI/ML Governance**: Responsible AI practices and compliance frameworks
-- **✅ Enterprise Architecture**: Scalable, secure, and cost-optimized ML solutions
+- **✅ SageMaker Notebook**: Managed JupyterLab for data exploration and AWS SDK integration
+- **✅ Bedrock GenAI**: Text generation via Lambda + HTTP API Gateway
+- **📝 Amazon Q Business (Planned)**: Future expansion for knowledge search and Q&A
+- **✅ Governance Baseline**: IAM least-privilege roles, S3 encryption, CloudWatch logging
+- **✅ Serverless Data Architecture**: Kinesis → Lambda → S3 with monitoring
 
 ## 🚀 **Quick Start**
 
-### ⚡ **Basic Deployment** - Production Ready ($20/month)
-ETL pipeline with automated data processing and basic analytics
+### ⚡ **Basic Deployment** - Production Ready (~low cost)
+Event-driven pipeline with Kinesis → Lambda → S3, plus Bedrock API and a SageMaker notebook
 
-**Features:** Kinesis Analytics, Lambda ETL, S3 Data Lake, Athena Queries
+**Features:** Kinesis Stream, Lambda Processor, S3 Bucket, CloudWatch Dashboard, Bedrock API (HTTP API + Lambda), SageMaker Notebook
 **Perfect for:** Portfolio demonstrations, interviews, professional projects
 **→ [Deploy Basic Version](README.md#basic-deployment)**
 
-### 🏢 **Enterprise Demo** - Full Architecture ($150-300/month)
-Enterprise data platform with ML capabilities and advanced analytics
+### 🏢 **Enterprise Demo** - Planned (not deployed by default)
+Enterprise data platform expansion (future/optional)
 
-**Features:** EMR Spark, SageMaker ML, Redshift Analytics, DataSync
+**Potential Features:** EMR Spark, Redshift, DataSync, enhanced governance
 **Perfect for:** Enterprise demos, technical deep-dives, team alignment
-**→ [Deploy Enterprise Demo](enterprise-demo/)**
+See roadmap: [docs/PROJECT_STATUS.md](docs/PROJECT_STATUS.md)
 
 ---
 
@@ -36,19 +36,19 @@ Enterprise data platform with ML capabilities and advanced analytics
 This repository showcases **senior-level AWS capabilities** through:
 
 ### 🏗️ **Architecture Highlights**
-- **{{ARCH_HIGHLIGHT_1}}**: {{ARCH_DESCRIPTION_1}}
-- **{{ARCH_HIGHLIGHT_2}}**: {{ARCH_DESCRIPTION_2}}
-- **{{ARCH_HIGHLIGHT_3}}**: {{ARCH_DESCRIPTION_3}}
-- **{{ARCH_HIGHLIGHT_4}}**: {{ARCH_DESCRIPTION_4}}
+- Event ingestion with Kinesis → Lambda stream processor → S3
+- Bedrock demo via Lambda + HTTP API Gateway
+- CloudWatch dashboard with Lambda/Kinesis key metrics
+- SageMaker notebook instance for interactive exploration
 
 ## 📊 **Technical Skills Demonstrated**
 
 | Skill Area | Basic Version | Enterprise Demo |
 |------------|---------------|-----------------|
 | **Infrastructure as Code** | ✅ Terraform | ✅ Advanced Terraform Modules |
-| **{{SKILL_1}}** | ✅ {{BASIC_SKILL_1}} | ✅ {{ENTERPRISE_SKILL_1}} |
-| **{{SKILL_2}}** | ✅ {{BASIC_SKILL_2}} | ✅ {{ENTERPRISE_SKILL_2}} |
-| **{{SKILL_3}}** | ✅ {{BASIC_SKILL_3}} | ✅ {{ENTERPRISE_SKILL_3}} |
+| **Event-driven Data** | ✅ Kinesis + Lambda | ✅ Scalable ingestion patterns |
+| **Serverless** | ✅ Lambda handlers | ✅ API Gateway integration |
+| **Observability** | ✅ CloudWatch logs/dashboards | ✅ Alerts & metrics |
 | **DevOps Practices** | ✅ CI/CD Ready | ✅ Enterprise Automation |
 | **Security** | ✅ IAM + Encryption | ✅ VPC + Advanced Security |
 
@@ -67,8 +67,8 @@ This repository showcases **senior-level AWS capabilities** through:
 
 ## 📸 **Live Dashboard Screenshots**
 
-![Main Dashboard](docs/screenshots/main-dashboard.png)
-*Main Dashboard - Shows {{DASHBOARD_DESCRIPTION}}*
+![Kinesis Stream Monitoring](docs/screenshots/kinesis-stream-monitoring-console-screenshot.png)
+*Kinesis throughput and iterator age*
 
 > 🎯 **Portfolio Demonstration**: These screenshots show a live, working AWS data-pipeline processing real data with zero errors and fast performance.
 
@@ -77,27 +77,45 @@ This repository showcases **senior-level AWS capabilities** through:
 ## 🏗️ Architecture
 
 ```mermaid
-graph TB
-    {{MERMAID_ARCHITECTURE}}
+flowchart LR
+    subgraph Ingestion
+        K[Kinesis Stream]
+    end
+    subgraph Processing
+        L[Lambda Kinesis Processor]
+    end
+    subgraph Storage
+        S3[(S3 Bucket)]
+    end
+    subgraph GenAI
+        B[Lambda Bedrock Invoke] -- AWS Proxy --> API[HTTP API Gateway]
+    end
+    subgraph ML
+        SM[SageMaker Notebook]
+    end
+    K -- records --> L -- writes objects --> S3
+    API -- /bedrock --> B
+    SM <-- reads/writes --> S3
 ```
 
 ## 📊 Key Features
 
 ### ✅ **Deployed & Functional**
-- **{{FEATURE_1}}**: {{FEATURE_1_DESCRIPTION}}
-- **{{FEATURE_2}}**: {{FEATURE_2_DESCRIPTION}}
-- **{{FEATURE_3}}**: {{FEATURE_3_DESCRIPTION}}
-- **Cost-Optimized**: ~$20/month for full functionality
+- Kinesis stream + Lambda processor writing to S3
+- Bedrock text generation via API Gateway → Lambda → Bedrock runtime
+- CloudWatch dashboard with Lambda and Kinesis metrics
+- SageMaker notebook instance with working AWS SDK access
+- Cost-Optimized: low-cost defaults; destroy when done
 
 ### 🔒 **Security Features**
-- **{{SECURITY_1}}**: {{SECURITY_1_DESCRIPTION}}
-- **{{SECURITY_2}}**: {{SECURITY_2_DESCRIPTION}}
-- **{{SECURITY_3}}**: {{SECURITY_3_DESCRIPTION}}
+- S3 bucket encryption (SSE-S3) and public access block
+- Least-privilege IAM roles for Lambda; basic execution + scoped data access
+- CloudWatch logging for Lambdas; dashboard visibility
 
 ### 🗄️ **Data Architecture**
-- **{{DATA_1}}**: {{DATA_1_DESCRIPTION}}
-- **{{DATA_2}}**: {{DATA_2_DESCRIPTION}}
-- **{{DATA_3}}**: {{DATA_3_DESCRIPTION}}
+- Streaming ingress: Kinesis → Lambda
+- Durable storage: S3 with versioning and lifecycle configuration
+- Access patterns: Notebook exploration, downstream analytics-ready objects
 
 ### 🛠️ **Enterprise Ready**
 - **Infrastructure as Code**: Complete Terraform deployment
@@ -124,7 +142,7 @@ aws sts get-caller-identity --profile aws-ml-integration-demo
 ### Deploy Infrastructure (10-12 minutes)
 ```powershell
 # Clone and deploy
-git clone {{REPO_URL}}
+git clone https://github.com/jpanderson91/aws-ml-integration-demo.git
 cd aws-ml-integration-demo/terraform
 
 # Initialize and deploy
@@ -132,24 +150,26 @@ terraform init
 terraform apply -auto-approve
 
 # Verify deployment
-{{VERIFICATION_COMMANDS}}
+terraform output
 ```
 
 ### Test the System
 ```powershell
-# Generate test data
-cd ../testing
-python test_data-pipeline.py
+# Generate test data into Kinesis (PowerShell)
+cd ../testing/integration
+$stream = (cd ../../terraform; terraform output -raw stream_and_lambda | ConvertFrom-Json).stream_name
+./send_records.ps1 -StreamName $stream -Count 10
 
-# View live dashboards (URLs from terraform output)
+# View CloudWatch dashboard (copy URL from output)
+cd ../../terraform
 terraform output dashboard_urls
 ```
 
 **Expected Results:**
-- ✅ {{EXPECTED_1}}
-- ✅ {{EXPECTED_2}}
-- ✅ {{EXPECTED_3}}
-- ✅ Zero processing errors
+- ✅ Objects appear in S3 bucket with processed Kinesis records
+- ✅ CloudWatch dashboard shows Lambda invocations and Kinesis activity
+- ✅ Bedrock API returns 200 with generated text
+- ✅ Notebook can import boto3 and list buckets
 
 ## 📁 Project Structure
 
@@ -187,7 +207,7 @@ aws-ml-integration-demo/
 | Document | Purpose | Audience |
 |----------|---------|----------|
 | [**Basic Deployment**](README.md#basic-deployment) | Quick deployment guide | Everyone |
-| [**Enterprise Demo**](enterprise-demo/) | Advanced architecture | Technical stakeholders |
+| [Enterprise Roadmap](docs/PROJECT_STATUS.md) | Planned expansion areas | Technical stakeholders |
 | [**Project Status**](docs/PROJECT_STATUS.md) | Portfolio summary | Hiring managers |
 | [**Issue Resolution**](docs/ISSUE_TRACKING.md) | Problem-solving skills | Technical interviewers |
 | [**Cost Analysis**](docs/cost-analysis.md) | Financial responsibility | Management |
@@ -204,16 +224,14 @@ aws-ml-integration-demo/
 - ✅ **Problem-Solving Skills** - Documented troubleshooting and resolution process
 
 ### **For Technical Teams:**
-- ✅ **Infrastructure as Code** - Complete Terraform automation with best practices
-- ✅ **{{TECHNICAL_HIGHLIGHT_1}}** - {{TECHNICAL_DESCRIPTION_1}}
-- ✅ **{{TECHNICAL_HIGHLIGHT_2}}** - {{TECHNICAL_DESCRIPTION_2}}
-- ✅ **Monitoring & Observability** - Comprehensive CloudWatch integration
+- ✅ **Infrastructure as Code** - Terraform with providers, data sources, and outputs
+- ✅ **Serverless Patterns** - Kinesis → Lambda → S3; API Gateway → Lambda → Bedrock
+- ✅ **Monitoring & Observability** - CloudWatch logs and dashboards
 
 ### **For Enterprise Stakeholders:**
-- ✅ **Enterprise Alignment** - {{ENTERPRISE_ALIGNMENT_DESCRIPTION}}
-- ✅ **Scalable Design** - From $20/month to enterprise-scale deployment options
-- ✅ **Compliance Ready** - Audit logging, encryption, and data governance
-- ✅ **{{ENTERPRISE_FEATURE}}** - {{ENTERPRISE_FEATURE_DESCRIPTION}}
+- ✅ **Scalable Design** - Modular Terraform, optional features by flags
+- ✅ **Cost Control** - Low-cost defaults with easy teardown
+- ✅ **Compliance Ready** - Encryption at rest, IAM boundaries, logging
 
 ---
 
@@ -230,11 +248,11 @@ aws-ml-integration-demo/
 
 ---
 
-**Project Status**: ✅ **Production Ready**
-**Last Updated**: 2025-08-07
-**AWS Services**: 8+ integrated services
-**Cost Target**: $20-150-300/month (configurable)
-**Deployment Time**: 10-12 minutes
+**Project Status**: ✅ Demo Ready
+**Last Updated**: 2025-08-10
+**AWS Services**: Kinesis, Lambda, S3, CloudWatch, API Gateway, Bedrock, SageMaker
+**Cost Target**: Low (destroy when done)
+**Deployment Time**: ~10-12 minutes
 
 ## 📞 Support
 
@@ -247,7 +265,7 @@ For questions about this implementation or enterprise integration:
 
 ---
 
-**Project Status**: ✅ Production Ready
-**Last Updated**: 2025-08-07
-**AWS Services**: 8+ integrated services
-**data-pipeline Focus**: Enterprise architecture alignment
+**Project Status**: ✅ Demo Ready
+**Last Updated**: 2025-08-10
+**AWS Services**: Kinesis, Lambda, S3, CloudWatch, API Gateway, Bedrock, SageMaker
+**data-pipeline Focus**: Event-driven serverless data ingestion
