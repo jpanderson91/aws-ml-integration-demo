@@ -132,7 +132,8 @@ flowchart LR
 # Install required tools
 aws --version          # AWS CLI v2
 terraform --version    # Terraform 1.5+
-{{ADDITIONAL_PREREQUISITES}}
+python --version       # Python 3.8+
+git --version          # Git CLI
 
 # Configure AWS credentials
 aws configure sso --profile aws-ml-integration-demo
@@ -187,7 +188,7 @@ aws-ml-integration-demo/
 │   └── Lambda/ # Secondary service implementation
 ├── terraform/             # 🏗️ Infrastructure as Code
 │   ├── main.tf           # Core infrastructure configuration
-│   ├── {{SERVICE_1}}.tf  # Service-specific configurations
+│   ├── modules/          # Service-specific configurations (optional modules)
 │   ├── variables.tf      # Input variables
 │   └── outputs.tf        # Output values
 ├── testing/               # 🧪 Testing & validation
