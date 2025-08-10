@@ -22,27 +22,14 @@ output "environment" {
   value       = var.environment
 }
 
-# Kinesis Analytics Outputs
-output "{{PRIMARY_SERVICE_OUTPUT}}" {
-  description = "Kinesis Analytics configuration and endpoints"
-  value = {
-    {{PRIMARY_SERVICE_OUTPUT_DETAILS}}
-  }
-}
-
-# Lambda Outputs
-output "{{SECONDARY_SERVICE_OUTPUT}}" {
-  description = "Lambda configuration and endpoints"
-  value = {
-    {{SECONDARY_SERVICE_OUTPUT_DETAILS}}
-  }
-}
-
 # Storage Outputs
 output "storage_resources" {
   description = "Storage resource information"
   value = {
-    {{STORAGE_OUTPUT_DETAILS}}
+    bucket_name        = aws_s3_bucket.data.bucket
+    bucket_arn         = aws_s3_bucket.data.arn
+    versioning_enabled = var.storage_config.versioning
+    encryption         = var.storage_config.encryption
   }
 }
 
@@ -50,16 +37,20 @@ output "storage_resources" {
 output "security_resources" {
   description = "Security and IAM resource information"
   value = {
-    {{SECURITY_OUTPUT_DETAILS}}
+    bucket_public_access_block = true
+    sse_s3_encryption          = var.storage_config.encryption
+    kms_rotation               = var.security_config.kms_key_rotation
+    vpc_enabled                = var.security_config.vpc_enabled
   }
-  sensitive = true
+  sensitive = false
 }
 
 # Monitoring and Dashboard Outputs
 output "monitoring_resources" {
   description = "Monitoring and dashboard information"
   value = {
-    {{MONITORING_OUTPUT_DETAILS}}
+    log_group_name = aws_cloudwatch_log_group.main.name
+    dashboard_name = aws_cloudwatch_dashboard.overview.dashboard_name
   }
 }
 
@@ -67,28 +58,16 @@ output "monitoring_resources" {
 output "dashboard_urls" {
   description = "URLs for accessing dashboards and interfaces"
   value = {
-    {{DASHBOARD_URL_OUTPUTS}}
-  }
-}
-
-output "api_endpoints" {
-  description = "API endpoints for testing and integration"
-  value = {
-    {{API_ENDPOINT_OUTPUTS}}
+    cloudwatch_dashboard = "https://${data.aws_region.current.name}.console.aws.amazon.com/cloudwatch/home?region=${data.aws_region.current.name}#dashboards:name=${aws_cloudwatch_dashboard.overview.dashboard_name}"
   }
 }
 
 # Cost and Resource Summary
 output "deployment_summary" {
-  description = "Summary of deployed resources and estimated costs"
+  description = "Summary of deployed resources"
   value = {
-    total_resources     = {{RESOURCE_COUNT}}
-    estimated_monthly_cost = "${{ESTIMATED_COST}}"
-    deployment_region   = data.aws_region.current.name
-    deployment_time     = timestamp()
-    resource_summary = {
-      {{RESOURCE_SUMMARY}}
-    }
+    deployment_region = data.aws_region.current.name
+    deployment_time   = timestamp()
   }
 }
 
@@ -96,7 +75,8 @@ output "deployment_summary" {
 output "testing_information" {
   description = "Information for testing and validating the deployment"
   value = {
-    {{TESTING_OUTPUT_DETAILS}}
+    bucket_name = aws_s3_bucket.data.bucket
+    log_group   = aws_cloudwatch_log_group.main.name
   }
 }
 
@@ -104,10 +84,7 @@ output "testing_information" {
 output "portfolio_demo_commands" {
   description = "Commands to demonstrate the working system"
   value = {
-    test_command        = "{{TEST_COMMAND}}"
-    dashboard_command   = "{{DASHBOARD_COMMAND}}"
-    monitoring_command  = "{{MONITORING_COMMAND}}"
-    cleanup_command     = "terraform destroy -auto-approve"
+    cleanup_command = "terraform destroy -auto-approve"
   }
 }
 
@@ -115,7 +92,10 @@ output "portfolio_demo_commands" {
 output "enterprise_features_status" {
   description = "Status of enterprise features (enabled/disabled)"
   value = {
-    {{ENTERPRISE_FEATURES_STATUS}}
+    private_link        = var.enterprise_features.private_link
+    cross_account       = var.enterprise_features.cross_account
+    multi_region        = var.enterprise_features.multi_region
+    advanced_monitoring = var.enterprise_features.advanced_monitoring
   }
 }
 
@@ -124,9 +104,9 @@ output "security_compliance" {
   description = "Security and compliance status"
   value = {
     encryption_enabled  = var.security_config.enable_encryption
-    vpc_enabled        = var.security_config.vpc_enabled
-    kms_rotation       = var.security_config.kms_key_rotation
-    audit_logging      = true
+    vpc_enabled         = var.security_config.vpc_enabled
+    kms_rotation        = var.security_config.kms_key_rotation
+    audit_logging       = true
     iam_least_privilege = true
   }
 }
